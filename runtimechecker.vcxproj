@@ -88,15 +88,22 @@
     <ResourceCompile Include="runtimechecker.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dll4.bin" />
+    <None Include="dll5.bin" />
     <None Include="res\vc2002.dll" />
     <None Include="res\vc2003.dll" />
     <None Include="res\vc2005.dll" />
     <None Include="res\vc2008.dll" />
     <None Include="res\vc2010.dll" />
+    <None Include="res\vc2010_x64.dll" />
     <None Include="res\vc2012.dll" />
     <None Include="res\vc2013.dll" />
+    <None Include="res\vc2013_x64.dll" />
     <None Include="res\vc2015.dll" />
+    <None Include="res\vc2015_X64.dll" />
     <None Include="res\vc2017.dll" />
+    <None Include="res\vc2017_x64.dll" />
+    <None Include="res\vc2019_x64.dll" />
     <None Include="res\vc6.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
