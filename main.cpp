@@ -9,7 +9,36 @@
 #include <shlwapi.h>
 #include "resource.h"
 
+#define APPNAME TEXT("runtimechecker")
+#define APPVERSION TEXT("1.0.1")
+
 TCHAR szClassName[] = TEXT("RuntimeChecker");
+
+LPCTSTR in18ns[] = {
+	TEXT("Visual C++ Runtime Chcker"),
+	TEXT("Refresh"),
+	TEXT("Meiryo"),
+};
+LPCTSTR in18ns932[] = {
+	TEXT("Visual C++ ランタイム チェッカー"),
+	TEXT("更新(F5)"),
+	TEXT("メイリオ"),
+};
+
+LPCTSTR* ppI18N = in18ns;
+#define UI_TITLE		ppI18N[0]
+#define UI_REFRESH		ppI18N[1]
+#define UI_MEIRYO		ppI18N[2]
+
+void SetLang()
+{
+#define IN_CASE(acp) case 932: ppI18N = in18ns932; break;
+	switch (GetACP())
+	{
+		IN_CASE(932)
+	}
+#undef IN_CASE
+}
 
 struct RUNTIME_STRUCT
 {
@@ -68,12 +97,28 @@ BOOL CreateFileFromResource(IN LPCTSTR lpszResourceName, IN LPCTSTR lpszResource
 	return bReturn;
 }
 
+// nodefaultlibrary needs this
+BOOL IsSameGUID(const GUID& g1, const GUID& g2)
+{
+	struct st16 {
+		BYTE b16[16];
+	};
+	if (sizeof(st16) != sizeof(GUID))
+	{
+		MessageBox(NULL, L"Fatal Error", L"runtimechecker", MB_ICONERROR);
+		TerminateProcess(GetCurrentProcess(), -1);
+	}
+	for (int i = 0; i < sizeof(((st16*)0)->b16); ++i)
+		if (((st16*)&g1)->b16[i] != ((st16*)&g2)->b16[i])
+			return FALSE;
+	return TRUE;
+}
 BOOL CreateGUID(OUT LPTSTR lpszGUID)
 {
 	GUID guid = GUID_NULL;
 	HRESULT hr = UuidCreate(&guid);
 	if (HRESULT_CODE(hr) != RPC_S_OK) return FALSE;
-	if (guid == GUID_NULL) return FALSE;
+	if (IsSameGUID(guid,GUID_NULL)) return FALSE;
 	wsprintf(lpszGUID, TEXT("{%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}"),
 		guid.Data1, guid.Data2, guid.Data3,
 		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
@@ -97,8 +142,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_CREATE:
-		hFont = CreateFont(18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, TEXT("メイリオ"));
-		CreateWindow(TEXT("BUTTON"), TEXT("更新(F5)"), WS_VISIBLE | WS_CHILD | WS_TABSTOP,
+		hFont = CreateFont(18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, UI_MEIRYO);
+		CreateWindow(TEXT("BUTTON"), UI_REFRESH, WS_VISIBLE | WS_CHILD | WS_TABSTOP,
 			128, 8, 64, 26, hWnd, (HMENU)ID_BUTTON1, ((LPCREATESTRUCT)lParam)->hInstance, 0);
 		SendDlgItemMessage(hWnd, ID_BUTTON1, WM_SETFONT, (WPARAM)hFont, 0);
 		SendMessage(hWnd, WM_RUNTIMECHECK, 0, 0);
@@ -171,8 +216,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR pCmdLine, int nCmdShow)
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR pCmdLine, int nCmdShow)
+int entry()
 {
+	SetLang();
+	HINSTANCE hInstance = GetModuleHandle(NULL);
 	MSG msg;
 	const WNDCLASS wndclass = {
 		0,
@@ -196,7 +244,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInst, LPSTR pCmdLine, int 
 
 	const HWND hWnd = CreateWindow(
 		szClassName,
-		TEXT("Visual C++ ランタイム チェッカー"),
+		UI_TITLE,
 		dwStyle,
 		CW_USEDEFAULT,
 		0,
